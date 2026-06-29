@@ -6,7 +6,18 @@ PowerShell-Modul für die Confluence Cloud REST API (v2). Ermöglicht das Lesen,
 
 ```powershell
 git clone https://github.com/ThomasWilla/ConfluenceCloud.git
-Import-Module "C:\Pfad\zu\ConfluenceCloud\ConfluenceCloud.psd1"
+Import-Module "C:\Pfad\zu\ConfluenceCloud\1.0.0\ConfluenceCloud.psd1"
+```
+
+## Struktur
+
+```
+ConfluenceCloud/
+└── 1.0.0/
+    ├── ConfluenceCloud.psd1
+    ├── ConfluenceCloud.psm1
+    ├── Public/      # Eine Funktion pro Datei, wird exportiert
+    └── Private/     # Interne Hilfsfunktionen
 ```
 
 ## Voraussetzungen

@@ -18,7 +18,7 @@ ModuleVersion = '1.0.0'
 # CompatiblePSEditions = @()
 
 # ID used to uniquely identify this module
-GUID = '61ab6299-aa01-41df-9ea4-53750466b454'
+GUID = '4fa464c2-5d7e-47df-937d-5a574fa3f788'
 
 # Author of this module
 Author = 'Thomas Willa'
@@ -33,7 +33,7 @@ Copyright = '(c) Thomas Willa. All rights reserved.'
 Description = 'PowerShell-Modul für Confluence Cloud REST API v2 (Seiten, Anhänge)'
 
 # Minimum version of the PowerShell engine required by this module
-PowerShellVersion = '5.1'
+# PowerShellVersion = ''
 
 # Name of the PowerShell host required by this module
 # PowerShellHostName = ''
@@ -69,11 +69,11 @@ PowerShellVersion = '5.1'
 # NestedModules = @()
 
 # Functions to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no functions to export.
-FunctionsToExport = 'ConvertTo-ConfluenceStorageFormat', 'Connect-Confluence', 'Disconnect-Confluence', 'Get-ConfluencePage',
-               'New-ConfluencePage', 'Update-ConfluencePage',
-               'Remove-ConfluencePage', 'Get-ConfluenceAttachment',
-               'Add-ConfluenceAttachment', 'Save-ConfluenceAttachment',
-               'Remove-ConfluenceAttachment'
+FunctionsToExport = 'Connect-Confluence', 'Disconnect-Confluence', 'Get-ConfluencePage', 
+               'New-ConfluencePage', 'Update-ConfluencePage', 
+               'Remove-ConfluencePage', 'Get-ConfluenceAttachment', 
+               'Add-ConfluenceAttachment', 'Save-ConfluenceAttachment', 
+               'Remove-ConfluenceAttachment', 'ConvertTo-ConfluenceStorageFormat'
 
 # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.
 CmdletsToExport = '*'
