@@ -1,23 +1,23 @@
-# ConfluenceCloud
+# ConfluenceAPI
 
-PowerShell-Modul für die Confluence Cloud REST API (v2). Ermöglicht das Lesen, Erstellen und Bearbeiten von Seiten sowie das Verwalten von Anhängen über API-Token-Authentifizierung.
+PowerShell-Modul für die Confluence Cloud REST API (v2). Ermöglicht das Lesen, Erstellen und Bearbeiten von Seiten sowie das Verwalten von Anhängen über API-Token-Authentifizierung, optional über einen konfigurierbaren Proxy.
 
 ## Installation
 
 ```powershell
-git clone https://github.com/ThomasWilla/ConfluenceCloud.git
-Import-Module "C:\Pfad\zu\ConfluenceCloud\1.0.0\ConfluenceCloud.psd1"
+git clone https://github.com/ThomasWilla/ConfluenceAPI.git
+Import-Module "C:\Pfad\zu\ConfluenceAPI\1.0.0\ConfluenceAPI.psd1"
 ```
 
 ## Struktur
 
 ```
-ConfluenceCloud/
+ConfluenceAPI/
 └── 1.0.0/
-    ├── ConfluenceCloud.psd1
-    ├── ConfluenceCloud.psm1
+    ├── ConfluenceAPI.psd1
+    ├── ConfluenceAPI.psm1
     ├── Public/      # Eine Funktion pro Datei, wird exportiert
-    └── Private/     # Interne Hilfsfunktionen
+    └── Private/     # Interne Hilfsfunktionen (API-Wrapper, Proxy-Auflösung)
 ```
 
 ## Voraussetzungen
@@ -31,11 +31,31 @@ ConfluenceCloud/
 Connect-Confluence -BaseUrl "https://deinefirma.atlassian.net" -Email "du@firma.ch" -ApiToken (Read-Host -AsSecureString)
 ```
 
+### Verbindung über einen Proxy
+
+Falls dein Netzwerk einen ausgehenden Proxy benötigt, kannst du diesen beim Connect konfigurieren. Die Einstellung gilt danach für alle Aufrufe der Session (Seiten, Anhänge).
+
+```powershell
+# Mit den aktuellen Windows-Anmeldedaten
+Connect-Confluence -BaseUrl "https://deinefirma.atlassian.net" -Email "du@firma.ch" -ApiToken $Token `
+    -ProxyUrl "http://proxy.firma.ch:8080" -ProxyUseDefaultCredentials
+
+# Mit expliziten Proxy-Anmeldedaten
+Connect-Confluence -BaseUrl "https://deinefirma.atlassian.net" -Email "du@firma.ch" -ApiToken $Token `
+    -ProxyUrl "http://proxy.firma.ch:8080" -ProxyCredential (Get-Credential)
+```
+
+| Parameter | Beschreibung |
+|---|---|
+| `-ProxyUrl` | Proxy-URI, z.B. `http://proxy.firma.ch:8080`. Ohne diesen Parameter wird kein Proxy verwendet. |
+| `-ProxyUseDefaultCredentials` | Verwendet die aktuellen Windows-Anmeldedaten für die Proxy-Authentifizierung. |
+| `-ProxyCredential` | Explizite Anmeldedaten für die Proxy-Authentifizierung (überschreibt `-ProxyUseDefaultCredentials`). |
+
 ## Funktionen
 
 | Funktion | Beschreibung |
 |---|---|
-| `Connect-Confluence` | Stellt die Verbindung zu Confluence Cloud her |
+| `Connect-Confluence` | Stellt die Verbindung zu Confluence Cloud her (inkl. optionalem Proxy) |
 | `Disconnect-Confluence` | Trennt die aktuelle Verbindung |
 | `Get-ConfluencePage` | Ruft eine oder mehrere Seiten ab |
 | `New-ConfluencePage` | Erstellt eine neue Seite |

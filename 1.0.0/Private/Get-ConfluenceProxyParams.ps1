@@ -1,7 +1,7 @@
 function Get-ConfluenceProxyParams {
     <#
     .SYNOPSIS
-        Liefert die Proxy-Parameter für Invoke-RestMethod/Invoke-WebRequest, falls beim Connect ein Proxy gesetzt wurde.
+        Liefert die Proxy-Parameter für Invoke-RestMethod/Invoke-WebRequest, falls beim Connect ein Proxy konfiguriert wurde.
     #>
     [CmdletBinding()]
     param ()
@@ -9,15 +9,14 @@ function Get-ConfluenceProxyParams {
     process {
         $ProxyParams = @{}
 
-        if ($script:CFL_UseProxy) {
-            switch ($script:CFL_ProxyServer) {
-                "server-proxy" {
-                    $ProxyParams.Proxy = "http://server-proxy.xaas.swissic.ch:8080"
-                }
-                "client-proxy" {
-                    $ProxyParams.Proxy = "http://client-proxy.xaas.swissic.ch:8080"
-                    $ProxyParams.ProxyUseDefaultCredentials = $true
-                }
+        if ($script:CFL_ProxyUrl) {
+            $ProxyParams.Proxy = $script:CFL_ProxyUrl
+
+            if ($script:CFL_ProxyCredential) {
+                $ProxyParams.ProxyCredential = $script:CFL_ProxyCredential
+            }
+            elseif ($script:CFL_ProxyUseDefaultCredentials) {
+                $ProxyParams.ProxyUseDefaultCredentials = $true
             }
         }
     }

@@ -8,14 +8,16 @@ function Connect-Confluence {
         Atlassian-Account-E-Mail
     .PARAMETER ApiToken
         API-Token von https://id.atlassian.com/manage-profile/security/api-tokens
-    .PARAMETER UseProxy
-        Verbindung über einen Firmenproxy aufbauen.
-    .PARAMETER ProxyServer
-        Proxy-Variante: "server-proxy" (mit explizitem Proxy-URI) oder "client-proxy" (mit Default Credentials).
+    .PARAMETER ProxyUrl
+        Optionale Proxy-URI, z.B. "http://proxy.firma.ch:8080". Falls gesetzt, wird jeder API-Aufruf über diesen Proxy geleitet.
+    .PARAMETER ProxyUseDefaultCredentials
+        Verwendet die aktuellen Windows-Anmeldedaten für die Proxy-Authentifizierung.
+    .PARAMETER ProxyCredential
+        Explizite Anmeldedaten für die Proxy-Authentifizierung (alternativ zu -ProxyUseDefaultCredentials).
     .EXAMPLE
         Connect-Confluence -BaseUrl "https://meinefirma.atlassian.net" -Email "ich@firma.ch" -ApiToken (Read-Host -AsSecureString)
     .EXAMPLE
-        Connect-Confluence -BaseUrl "https://meinefirma.atlassian.net" -Email "ich@firma.ch" -ApiToken $Token -UseProxy -ProxyServer "client-proxy"
+        Connect-Confluence -BaseUrl "https://meinefirma.atlassian.net" -Email "ich@firma.ch" -ApiToken $Token -ProxyUrl "http://proxy.firma.ch:8080" -ProxyUseDefaultCredentials
     #>
     [CmdletBinding()]
     param (
@@ -32,15 +34,16 @@ function Connect-Confluence {
         $ApiToken,
 
         [Parameter(Mandatory = $false)]
-        [Parameter(ParameterSetName = "proxy")]
-        [switch]
-        $UseProxy,
+        [string]
+        $ProxyUrl,
 
         [Parameter(Mandatory = $false)]
-        [Parameter(ParameterSetName = "proxy")]
-        [ValidateSet("server-proxy", "client-proxy")]
-        [string]
-        $ProxyServer
+        [switch]
+        $ProxyUseDefaultCredentials,
+
+        [Parameter(Mandatory = $false)]
+        [System.Management.Automation.PSCredential]
+        $ProxyCredential
     )
 
     begin {
@@ -63,8 +66,9 @@ function Connect-Confluence {
         $script:CFL_BaseUrl = $BaseUrl.TrimEnd('/')
         $script:CFL_Email = $Email
         $script:CFL_AuthHeader = @{ Authorization = "Basic $Base64" }
-        $script:CFL_UseProxy = [bool]$UseProxy
-        $script:CFL_ProxyServer = $ProxyServer
+        $script:CFL_ProxyUrl = $ProxyUrl
+        $script:CFL_ProxyUseDefaultCredentials = [bool]$ProxyUseDefaultCredentials
+        $script:CFL_ProxyCredential = $ProxyCredential
 
         $ProxyParams = Get-ConfluenceProxyParams
 
@@ -75,8 +79,9 @@ function Connect-Confluence {
             $script:CFL_BaseUrl = $null
             $script:CFL_Email = $null
             $script:CFL_AuthHeader = $null
-            $script:CFL_UseProxy = $null
-            $script:CFL_ProxyServer = $null
+            $script:CFL_ProxyUrl = $null
+            $script:CFL_ProxyUseDefaultCredentials = $null
+            $script:CFL_ProxyCredential = $null
             Write-Error $_.Exception.Message
             Throw "Verbindung zu Confluence fehlgeschlagen."
         }
@@ -86,7 +91,7 @@ function Connect-Confluence {
         [pscustomobject]@{
             BaseUrl  = $script:CFL_BaseUrl
             Email    = $script:CFL_Email
-            UseProxy = $script:CFL_UseProxy
+            ProxyUrl = $script:CFL_ProxyUrl
         }
     }
 }
