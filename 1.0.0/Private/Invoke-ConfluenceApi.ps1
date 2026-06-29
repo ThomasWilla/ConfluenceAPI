@@ -38,6 +38,7 @@ function Invoke-ConfluenceApi {
             Uri     = $Uri
             Headers = $AllHeaders
         }
+        $Params += Get-ConfluenceProxyParams
 
         if ($null -ne $Body) {
             $Params.Body = ($Body | ConvertTo-Json -Depth 20)

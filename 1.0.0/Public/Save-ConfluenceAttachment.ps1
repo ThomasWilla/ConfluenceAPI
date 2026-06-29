@@ -42,6 +42,7 @@ function Save-ConfluenceAttachment {
             $DownloadLink = "$($script:CFL_BaseUrl)$DownloadLink"
         }
 
-        Invoke-WebRequest -Uri $DownloadLink -Headers $AuthHeader -OutFile $OutFile
+        $ProxyParams = Get-ConfluenceProxyParams
+        Invoke-WebRequest -Uri $DownloadLink -Headers $AuthHeader -OutFile $OutFile @ProxyParams
     }
 }

@@ -44,7 +44,8 @@ function Add-ConfluenceAttachment {
 
     process {
         try {
-            $response = (Invoke-RestMethod -Method Post -Uri $Uri -Headers $Headers -Form $Form).results
+            $ProxyParams = Get-ConfluenceProxyParams
+            $response = (Invoke-RestMethod -Method Post -Uri $Uri -Headers $Headers -Form $Form @ProxyParams).results
         }
         catch {
             $Resp = $_.Exception.Response
