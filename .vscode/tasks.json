@@ -1,0 +1,21 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Update PowerShell Manifest (FunctionsToExport)",
+      "type": "shell",
+      "command": "pwsh",
+      "args": [
+        "-NoProfile",
+        "-ExecutionPolicy", "Bypass",
+        "-File", "${workspaceFolder}/Update-ModuleManifestFunctions.ps1",
+        "-ModuleRoot", "${workspaceFolder}/1.0.0",
+        "-ManifestPath", "${workspaceFolder}/1.0.0/ConfluenceAPI.psd1",
+        "-Sort"
+      ],
+      "problemMatcher": []
+    }
+  ]
+}
+
+// starten über F1 >> Run Task

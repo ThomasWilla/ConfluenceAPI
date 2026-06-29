@@ -16,3 +16,7 @@ Foreach ($import in @($Public + $Private)) {
 }
 
 Export-ModuleMember -Function $Public.Basename
+
+# Define Module Cleanup Scripts
+Register-EngineEvent PowerShell.Exiting -Action { Invoke-ModuleCleanup } # Starten bei Events Exit, Close Window und Close Host Session
+$ExecutionContext.SessionState.Module.OnRemove = { Invoke-ModuleCleanup } # Starten bei Remove-Module
