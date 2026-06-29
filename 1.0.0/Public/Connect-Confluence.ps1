@@ -41,6 +41,22 @@ function Connect-Confluence {
         $ApiToken,
 
         [Parameter(Mandatory = $false)]
+        [ArgumentCompleter({
+            param($CommandName, $ParameterName, $WordToComplete, $CommandAst, $FakeBoundParameters)
+
+            $ConfigPath = $FakeBoundParameters['ProxyConfigPath']
+            if (-not $ConfigPath) {
+                $ModuleBase = (Get-Module -Name ConfluenceAPI | Select-Object -First 1).ModuleBase
+                if ($ModuleBase) {
+                    $ConfigPath = Join-Path -Path (Split-Path -Path $ModuleBase -Parent) -ChildPath "Configurations\ProxyConfig.json"
+                }
+            }
+
+            if ($ConfigPath -and (Test-Path -LiteralPath $ConfigPath)) {
+                (Get-Content -LiteralPath $ConfigPath -Raw | ConvertFrom-Json).PSObject.Properties.Name |
+                    Where-Object { $_ -like "$WordToComplete*" }
+            }
+        })]
         [string]
         $ProxyServer,
 
