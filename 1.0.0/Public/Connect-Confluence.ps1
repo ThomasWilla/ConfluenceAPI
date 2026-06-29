@@ -3,7 +3,7 @@ function Connect-Confluence {
     .SYNOPSIS
         Stellt eine Verbindung zu Confluence Cloud her (API-Token-Auth).
     .PARAMETER BaseUrl
-        z.B. https://deinedomain.atlassian.net
+        z.B. https://deinedomain.atlassian.net (ein angehängtes "/wiki" wird automatisch entfernt)
     .PARAMETER Email
         Atlassian-Account-E-Mail
     .PARAMETER ApiToken
@@ -78,7 +78,7 @@ function Connect-Confluence {
     }
 
     process {
-        $script:CFL_BaseUrl = $BaseUrl.TrimEnd('/')
+        $script:CFL_BaseUrl = $BaseUrl.TrimEnd('/') -replace '/wiki$', ''
         $script:CFL_Email = $Email
         $script:CFL_AuthHeader = @{ Authorization = "Basic $Base64" }
 
