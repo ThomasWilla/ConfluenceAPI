@@ -9,8 +9,8 @@ function Disconnect-Confluence {
     param ()
 
     process {
-        $Global:CFL_BaseUrl = $null
-        $Global:CFL_Email = $null
-        $Global:CFL_AuthHeader = $null
+        $script:CFL_BaseUrl = $null
+        $script:CFL_Email = $null
+        $script:CFL_AuthHeader = $null
     }
 }

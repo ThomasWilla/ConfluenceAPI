@@ -43,17 +43,17 @@ function Connect-Confluence {
     }
 
     process {
-        $Global:CFL_BaseUrl = $BaseUrl.TrimEnd('/')
-        $Global:CFL_Email = $Email
-        $Global:CFL_AuthHeader = @{ Authorization = "Basic $Base64" }
+        $script:CFL_BaseUrl = $BaseUrl.TrimEnd('/')
+        $script:CFL_Email = $Email
+        $script:CFL_AuthHeader = @{ Authorization = "Basic $Base64" }
 
         try {
-            $null = Invoke-RestMethod -Method Get -Uri "$($Global:CFL_BaseUrl)/wiki/api/v2/spaces?limit=1" -Headers $Global:CFL_AuthHeader
+            $null = Invoke-RestMethod -Method Get -Uri "$($script:CFL_BaseUrl)/wiki/api/v2/spaces?limit=1" -Headers $script:CFL_AuthHeader
         }
         catch {
-            $Global:CFL_BaseUrl = $null
-            $Global:CFL_Email = $null
-            $Global:CFL_AuthHeader = $null
+            $script:CFL_BaseUrl = $null
+            $script:CFL_Email = $null
+            $script:CFL_AuthHeader = $null
             Write-Error $_.Exception.Message
             Throw "Verbindung zu Confluence fehlgeschlagen."
         }
@@ -61,8 +61,8 @@ function Connect-Confluence {
 
     end {
         [pscustomobject]@{
-            BaseUrl = $Global:CFL_BaseUrl
-            Email   = $Global:CFL_Email
+            BaseUrl = $script:CFL_BaseUrl
+            Email   = $script:CFL_Email
         }
     }
 }

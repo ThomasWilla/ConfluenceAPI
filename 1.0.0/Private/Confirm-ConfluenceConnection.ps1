@@ -7,12 +7,12 @@ function Confirm-ConfluenceConnection {
     param ()
 
     process {
-        if (-not $Global:CFL_AuthHeader) {
+        if (-not $script:CFL_AuthHeader) {
             Throw "Keine aktive Confluence-Verbindung. Zuerst Connect-Confluence ausführen."
         }
     }
 
     end {
-        return $Global:CFL_AuthHeader
+        return $script:CFL_AuthHeader
     }
 }

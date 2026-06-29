@@ -39,7 +39,7 @@ function Save-ConfluenceAttachment {
         }
 
         if ($DownloadLink -notmatch "^https?://") {
-            $DownloadLink = "$($Global:CFL_BaseUrl)$DownloadLink"
+            $DownloadLink = "$($script:CFL_BaseUrl)$DownloadLink"
         }
 
         Invoke-WebRequest -Uri $DownloadLink -Headers $AuthHeader -OutFile $OutFile

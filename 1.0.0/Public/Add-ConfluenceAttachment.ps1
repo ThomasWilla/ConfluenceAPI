@@ -34,7 +34,7 @@ function Add-ConfluenceAttachment {
         }
 
         $AuthHeader = Confirm-ConfluenceConnection
-        $Uri = "$($Global:CFL_BaseUrl)/wiki/rest/api/content/$PageId/child/attachment"
+        $Uri = "$($script:CFL_BaseUrl)/wiki/rest/api/content/$PageId/child/attachment"
         $Headers = $AuthHeader.Clone()
         $Headers["X-Atlassian-Token"] = "no-check"
 
