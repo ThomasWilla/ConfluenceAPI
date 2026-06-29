@@ -1,0 +1,10 @@
+{
+  "server-proxy": {
+    "ProxyUrl": "http://server-proxy.xaas.swissic.ch:8080",
+    "UseDefaultCredentials": false
+  },
+  "client-proxy": {
+    "ProxyUrl": "http://client-proxy.xaas.swissic.ch:8080",
+    "UseDefaultCredentials": true
+  }
+}

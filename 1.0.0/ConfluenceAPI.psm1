@@ -1,3 +1,6 @@
+#Standardpfad der Proxy-Konfigurationsdatei (Modulstamm\Configurations\ProxyConfig.json)
+$script:CFL_DefaultProxyConfigPath = Join-Path -Path (Split-Path -Path $PSScriptRoot -Parent) -ChildPath "Configurations\ProxyConfig.json"
+
 #Get public and private function definition files.
 $Public = @( Get-ChildItem -Path $PSScriptRoot\Public\*.ps1 -Recurse -ErrorAction SilentlyContinue )
 $Private = @( Get-ChildItem -Path $PSScriptRoot\Private\*.ps1 -Recurse -ErrorAction SilentlyContinue )

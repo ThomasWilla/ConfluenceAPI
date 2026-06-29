@@ -33,7 +33,36 @@ Connect-Confluence -BaseUrl "https://deinefirma.atlassian.net" -Email "du@firma.
 
 ### Verbindung über einen Proxy
 
-Falls dein Netzwerk einen ausgehenden Proxy benötigt, kannst du diesen beim Connect konfigurieren. Die Einstellung gilt danach für alle Aufrufe der Session (Seiten, Anhänge).
+Falls dein Netzwerk einen ausgehenden Proxy benötigt, kannst du diesen beim Connect konfigurieren. Die Einstellung gilt danach für alle Aufrufe der Session (Seiten, Anhänge). Es gibt zwei Wege: über benannte Profile aus einer Konfigurationsdatei, oder direkt als Parameter.
+
+#### Variante 1: Benannte Proxy-Profile aus einer Konfigurationsdatei
+
+Profile (z.B. `server-proxy`, `client-proxy` oder beliebige eigene Namen) werden einmalig mit `Set-ConfluenceProxyConfig` angelegt und danach per `-ProxyServer` ausgewählt:
+
+```powershell
+# Profile einmalig anlegen/aktualisieren
+Set-ConfluenceProxyConfig -Name "server-proxy" -ProxyUrl "http://server-proxy.firma.ch:8080"
+Set-ConfluenceProxyConfig -Name "client-proxy" -ProxyUrl "http://client-proxy.firma.ch:8080" -UseDefaultCredentials
+
+# Verbindung unter Verwendung eines Profils
+Connect-Confluence -BaseUrl "https://deinefirma.atlassian.net" -Email "du@firma.ch" -ApiToken $Token -ProxyServer "client-proxy"
+```
+
+Die Konfigurationsdatei liegt standardmässig unter `<Modulstamm>\Configurations\ProxyConfig.json` und kann mit `-ConfigPath` (bei `Set-ConfluenceProxyConfig`) bzw. `-ProxyConfigPath` (bei `Connect-Confluence`) an einen anderen Ort gelegt werden, z.B. ein zentrales, geteiltes Verzeichnis.
+
+| Parameter (`Set-ConfluenceProxyConfig`) | Beschreibung |
+|---|---|
+| `-Name` | Frei wählbarer Profilname, z.B. `server-proxy` oder `client-proxy`. |
+| `-ProxyUrl` | Proxy-URI, z.B. `http://proxy.firma.ch:8080`. |
+| `-UseDefaultCredentials` | Profil mit den aktuellen Windows-Anmeldedaten authentifizieren. |
+| `-ConfigPath` | Pfad zur Konfigurationsdatei (Standard: `<Modulstamm>\Configurations\ProxyConfig.json`). |
+
+| Parameter (`Connect-Confluence`) | Beschreibung |
+|---|---|
+| `-ProxyServer` | Name eines Profils aus der Konfigurationsdatei. |
+| `-ProxyConfigPath` | Pfad zur Konfigurationsdatei, falls abweichend vom Standard. |
+
+#### Variante 2: Proxy direkt angeben (ohne Konfigurationsdatei)
 
 ```powershell
 # Mit den aktuellen Windows-Anmeldedaten
@@ -45,9 +74,9 @@ Connect-Confluence -BaseUrl "https://deinefirma.atlassian.net" -Email "du@firma.
     -ProxyUrl "http://proxy.firma.ch:8080" -ProxyCredential (Get-Credential)
 ```
 
-| Parameter | Beschreibung |
+| Parameter (`Connect-Confluence`) | Beschreibung |
 |---|---|
-| `-ProxyUrl` | Proxy-URI, z.B. `http://proxy.firma.ch:8080`. Ohne diesen Parameter wird kein Proxy verwendet. |
+| `-ProxyUrl` | Proxy-URI, z.B. `http://proxy.firma.ch:8080`. Hat Vorrang vor `-ProxyServer`, falls beide fehlen wird kein Proxy verwendet. |
 | `-ProxyUseDefaultCredentials` | Verwendet die aktuellen Windows-Anmeldedaten für die Proxy-Authentifizierung. |
 | `-ProxyCredential` | Explizite Anmeldedaten für die Proxy-Authentifizierung (überschreibt `-ProxyUseDefaultCredentials`). |
 
@@ -66,6 +95,7 @@ Connect-Confluence -BaseUrl "https://deinefirma.atlassian.net" -Email "du@firma.
 | `Save-ConfluenceAttachment` | Lädt einen Anhang lokal herunter |
 | `Remove-ConfluenceAttachment` | Löscht einen Anhang |
 | `ConvertTo-ConfluenceStorageFormat` | Wandelt Text/HTML in das Confluence-Storage-Format um |
+| `Set-ConfluenceProxyConfig` | Legt ein benanntes Proxy-Profil in der Konfigurationsdatei an/aktualisiert es |
 
 ## Beispiele
 

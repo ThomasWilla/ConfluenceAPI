@@ -8,14 +8,21 @@ function Connect-Confluence {
         Atlassian-Account-E-Mail
     .PARAMETER ApiToken
         API-Token von https://id.atlassian.com/manage-profile/security/api-tokens
+    .PARAMETER ProxyServer
+        Name eines in der Konfigurationsdatei abgelegten Proxy-Profils, z.B. "server-proxy" oder "client-proxy".
+        Siehe Set-ConfluenceProxyConfig.
+    .PARAMETER ProxyConfigPath
+        Pfad zur Proxy-Konfigurationsdatei (JSON). Standard: <Modulstamm>\Configurations\ProxyConfig.json
     .PARAMETER ProxyUrl
-        Optionale Proxy-URI, z.B. "http://proxy.firma.ch:8080". Falls gesetzt, wird jeder API-Aufruf über diesen Proxy geleitet.
+        Alternative zu -ProxyServer: Proxy-URI direkt angeben, z.B. "http://proxy.firma.ch:8080".
     .PARAMETER ProxyUseDefaultCredentials
-        Verwendet die aktuellen Windows-Anmeldedaten für die Proxy-Authentifizierung.
+        Nur zusammen mit -ProxyUrl: Verwendet die aktuellen Windows-Anmeldedaten für die Proxy-Authentifizierung.
     .PARAMETER ProxyCredential
-        Explizite Anmeldedaten für die Proxy-Authentifizierung (alternativ zu -ProxyUseDefaultCredentials).
+        Nur zusammen mit -ProxyUrl: Explizite Anmeldedaten für die Proxy-Authentifizierung.
     .EXAMPLE
         Connect-Confluence -BaseUrl "https://meinefirma.atlassian.net" -Email "ich@firma.ch" -ApiToken (Read-Host -AsSecureString)
+    .EXAMPLE
+        Connect-Confluence -BaseUrl "https://meinefirma.atlassian.net" -Email "ich@firma.ch" -ApiToken $Token -ProxyServer "client-proxy"
     .EXAMPLE
         Connect-Confluence -BaseUrl "https://meinefirma.atlassian.net" -Email "ich@firma.ch" -ApiToken $Token -ProxyUrl "http://proxy.firma.ch:8080" -ProxyUseDefaultCredentials
     #>
@@ -32,6 +39,14 @@ function Connect-Confluence {
         [Parameter(Mandatory = $true)]
         [object]
         $ApiToken,
+
+        [Parameter(Mandatory = $false)]
+        [string]
+        $ProxyServer,
+
+        [Parameter(Mandatory = $false)]
+        [string]
+        $ProxyConfigPath = $script:CFL_DefaultProxyConfigPath,
 
         [Parameter(Mandatory = $false)]
         [string]
@@ -66,9 +81,23 @@ function Connect-Confluence {
         $script:CFL_BaseUrl = $BaseUrl.TrimEnd('/')
         $script:CFL_Email = $Email
         $script:CFL_AuthHeader = @{ Authorization = "Basic $Base64" }
-        $script:CFL_ProxyUrl = $ProxyUrl
-        $script:CFL_ProxyUseDefaultCredentials = [bool]$ProxyUseDefaultCredentials
-        $script:CFL_ProxyCredential = $ProxyCredential
+
+        if ($ProxyServer) {
+            $ProxyConfigEntry = Get-ConfluenceProxyConfig -Name $ProxyServer -ConfigPath $ProxyConfigPath
+            $script:CFL_ProxyUrl = $ProxyConfigEntry.ProxyUrl
+            $script:CFL_ProxyUseDefaultCredentials = [bool]$ProxyConfigEntry.UseDefaultCredentials
+            $script:CFL_ProxyCredential = $null
+        }
+        elseif ($ProxyUrl) {
+            $script:CFL_ProxyUrl = $ProxyUrl
+            $script:CFL_ProxyUseDefaultCredentials = [bool]$ProxyUseDefaultCredentials
+            $script:CFL_ProxyCredential = $ProxyCredential
+        }
+        else {
+            $script:CFL_ProxyUrl = $null
+            $script:CFL_ProxyUseDefaultCredentials = $null
+            $script:CFL_ProxyCredential = $null
+        }
 
         $ProxyParams = Get-ConfluenceProxyParams
 
