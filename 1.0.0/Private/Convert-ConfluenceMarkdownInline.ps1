@@ -6,6 +6,7 @@ function Convert-ConfluenceMarkdownInline {
     [CmdletBinding()]
     param (
         [Parameter(Mandatory = $true)]
+        [AllowEmptyString()]
         [string]
         $Text
     )

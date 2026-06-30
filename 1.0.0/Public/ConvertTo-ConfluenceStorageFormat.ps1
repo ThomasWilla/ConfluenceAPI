@@ -23,6 +23,7 @@ function ConvertTo-ConfluenceStorageFormat {
     [CmdletBinding()]
     param (
         [Parameter(Mandatory = $true, ValueFromPipeline = $true)]
+        [AllowEmptyString()]
         [string]
         $InputText,
 

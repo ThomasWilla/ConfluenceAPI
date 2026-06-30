@@ -49,15 +49,9 @@ function Invoke-ConfluenceApi {
             $response = Invoke-RestMethod @Params
         }
         catch {
-            $Resp = $_.Exception.Response
-            if ($Resp) {
-                $Reader = New-Object System.IO.StreamReader($Resp.GetResponseStream())
-                $ErrBody = $Reader.ReadToEnd()
-                Write-Error $ErrBody
-                Throw "Confluence API Fehler ($($Resp.StatusCode)): $ErrBody"
-            }
-            Write-Error $_.Exception.Message
-            Throw $_.ErrorDetails
+            $ApiError = Resolve-ConfluenceApiError -ErrorRecord $_
+            Write-Error $ApiError.Message
+            Throw "Confluence API Fehler ($($ApiError.StatusCode)): $($ApiError.Message)"
         }
     }
 

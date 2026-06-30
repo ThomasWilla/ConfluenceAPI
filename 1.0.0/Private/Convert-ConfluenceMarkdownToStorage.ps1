@@ -10,6 +10,7 @@ function Convert-ConfluenceMarkdownToStorage {
     [CmdletBinding()]
     param (
         [Parameter(Mandatory = $true)]
+        [AllowEmptyString()]
         [string]
         $Markdown
     )
