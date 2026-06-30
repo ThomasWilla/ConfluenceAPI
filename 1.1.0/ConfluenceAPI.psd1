@@ -12,7 +12,7 @@
 RootModule = 'ConfluenceAPI.psm1'
 
 # Version number of this module.
-ModuleVersion = '1.0.0'
+ModuleVersion = '1.1.0'
 
 # Supported PSEditions
 # CompatiblePSEditions = @()
@@ -112,7 +112,7 @@ PrivateData = @{
         # IconUri = ''
 
         # ReleaseNotes of this module
-        ReleaseNotes = 'Initial release: Confluence Cloud REST API v2 (Seiten, Anhaenge), konfigurierbarer Proxy, Storage-Format-Konvertierung.'
+        ReleaseNotes = '1.1.0: Markdown-Konvertierung (-Markdown Switch), konfigurierbare Proxy-Profile (Set-ConfluenceProxyConfig), BaseUrl-Normalisierung, PS5.1/PS7-kompatible Fehlerbehandlung, diverse Fixes.'
 
         # Prerelease string of this module
         # Prerelease = ''
