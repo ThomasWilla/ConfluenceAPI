@@ -123,6 +123,29 @@ Remove-ConfluencePage -PageId 789
 
 Alle Funktionen nutzen die Confluence Cloud REST API v2 (`/wiki/api/v2/...`), `Add-ConfluenceAttachment` nutzt aus Kompatibilitätsgründen die v1-API (`/wiki/rest/api/...`) für den Multipart-Upload.
 
+## Changelog
+
+### [Unreleased]
+
+- Fix: `ConvertTo-ConfluenceStorageFormat`/`-Markdown` akzeptiert jetzt leere Tabellenzellen/Zeilen, statt mit einem Validierungsfehler abzubrechen.
+- Fix: API-Fehlerbehandlung funktioniert jetzt sowohl unter Windows PowerShell 5.1 als auch PowerShell 7+ (unterschiedliche Response-Objekte beim Fehlschlagen von `Invoke-RestMethod`).
+- `ConvertTo-ConfluenceStorageFormat`: neuer `-Markdown`-Switch — wandelt Überschriften, Listen, Tabellen (`| ... |` und `||...||`) sowie Inline-Formatierung (`**fett**`, `*kursiv*`, `` `code` ``, `[Text](URL)`) in Storage-Format um.
+- LICENSE (MIT) sowie PSGallery-Metadaten (Tags, LicenseUri, ProjectUri, ReleaseNotes) ergänzt.
+- VS-Code-Workspace-Konfiguration (`.vscode/`) und Modul-Cleanup-Hook (`Invoke-ModuleCleanup`, trennt die Verbindung automatisch bei `Remove-Module`/Sitzungsende) ergänzt.
+- Fix: `BaseUrl` mit angehängtem `/wiki` führte zu doppeltem `/wiki/wiki/` in den API-Pfaden — wird jetzt automatisch normalisiert.
+- `-ProxyServer` bei `Connect-Confluence` unterstützt jetzt Tab-Completion anhand der Profile in `ProxyConfig.json`.
+- Proxy-Konfiguration über benannte Profile in `Configurations\ProxyConfig.json` (`Set-ConfluenceProxyConfig`, `-ProxyServer`) ergänzt, als Alternative zu den direkten `-ProxyUrl`/`-ProxyUseDefaultCredentials`/`-ProxyCredential`-Parametern.
+- Verbindungszustand wird modul-intern (`$script:`-Scope) statt global verwaltet.
+- Modul auf das versionierte `Public`/`Private`-Layout umgestellt.
+
+### 1.0.0 (2026-06-29)
+
+- Initiale Veröffentlichung auf der PowerShell Gallery.
+- Seiten lesen/erstellen/aktualisieren/löschen (`Get-/New-/Update-/Remove-ConfluencePage`).
+- Anhänge verwalten (`Get-/Add-/Save-/Remove-ConfluenceAttachment`).
+- API-Token-Authentifizierung (`Connect-Confluence`/`Disconnect-Confluence`).
+- `ConvertTo-ConfluenceStorageFormat` für reinen Text/HTML.
+
 ## Lizenz
 
 MIT
