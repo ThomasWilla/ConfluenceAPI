@@ -124,6 +124,7 @@ Update-ConfluencePage -PageId 789 -Body "<p>Neuer Inhalt</p>"
 # Anhang hochladen / herunterladen
 Add-ConfluenceAttachment -PageId 789 -FilePath "C:\Dateien\bericht.pdf"
 Get-ConfluenceAttachment -PageId 789
+Get-ConfluenceAttachment -PageId 789 -FileNameFilter "bericht.pdf"
 Save-ConfluenceAttachment -AttachmentId 111 -OutFile "C:\Downloads\datei.pdf"
 
 # Seite löschen
@@ -135,6 +136,10 @@ Remove-ConfluencePage -PageId 789
 Alle Funktionen nutzen die Confluence Cloud REST API v2 (`/wiki/api/v2/...`), `Add-ConfluenceAttachment` nutzt aus Kompatibilitätsgründen die v1-API (`/wiki/rest/api/...`) für den Multipart-Upload.
 
 ## Changelog
+
+### Unreleased
+
+- `Get-ConfluenceAttachment`: neuer `-FileNameFilter`-Parameter, filtert Anhänge über den `filename`-Query-Parameter der API nach exaktem Dateinamen.
 
 ### 1.1.0 (2026-06-30)
 
