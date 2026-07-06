@@ -9,7 +9,7 @@ function Connect-Confluence {
     .PARAMETER ApiToken
         API-Token von https://id.atlassian.com/manage-profile/security/api-tokens (nur bei BasicAuth)
     .PARAMETER AccessToken
-        OAuth2 Bearer Access Token (z.B. aus dem Atlassian OAuth 2.0 (3LO) Flow). Alternativ zu Email/ApiToken.
+        OAuth2 Bearer Access Token als String, SecureString oder PSCredential (Token im Password-Feld). Alternativ zu Email/ApiToken.
     .PARAMETER ProxyServer
         Name eines in der Konfigurationsdatei abgelegten Proxy-Profils, z.B. "server-proxy" oder "client-proxy".
         Siehe Set-ConfluenceProxyConfig.
@@ -102,7 +102,10 @@ function Connect-Confluence {
             $AuthValue = "Basic $Base64"
         }
         else {
-            if ($AccessToken -is [System.Security.SecureString]) {
+            if ($AccessToken -is [System.Management.Automation.PSCredential]) {
+                $PlainBearer = $AccessToken.GetNetworkCredential().Password
+            }
+            elseif ($AccessToken -is [System.Security.SecureString]) {
                 $PlainBearer = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto(
                     [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($AccessToken)
                 )
