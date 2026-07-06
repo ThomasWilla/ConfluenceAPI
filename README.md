@@ -38,9 +38,21 @@ ConfluenceAPI/
 
 ## Verbindung herstellen
 
+### API-Token (Basic Auth)
+
 ```powershell
 Connect-Confluence -BaseUrl "https://deinefirma.atlassian.net" -Email "du@firma.ch" -ApiToken (Read-Host -AsSecureString)
 ```
+
+### OAuth2 Bearer Token
+
+Alternativ kann ein OAuth2 Access Token übergeben werden (z.B. aus dem Atlassian OAuth 2.0 (3LO) Flow):
+
+```powershell
+Connect-Confluence -BaseUrl "https://deinefirma.atlassian.net" -AccessToken $BearerToken
+```
+
+Den Token beziehst du über eine Atlassian OAuth 2.0 App ([developer.atlassian.com](https://developer.atlassian.com/console/myapps/)) mit dem Authorization Code / PKCE-Flow. Das Modul akzeptiert den fertigen Token als `[string]` oder `[SecureString]`.
 
 ### Verbindung über einen Proxy
 
@@ -139,6 +151,7 @@ Alle Funktionen nutzen die Confluence Cloud REST API v2 (`/wiki/api/v2/...`), `A
 
 ### Unreleased
 
+- `Connect-Confluence`: neuer `-AccessToken`-Parameter (ParameterSetName `OAuth2`) als Alternative zu `-Email`/`-ApiToken` — ermöglicht Authentifizierung über einen OAuth2 Bearer Token (z.B. aus dem Atlassian Authorization Code / PKCE-Flow). Das Rückgabeobjekt enthält neu das Feld `AuthMethod`.
 - `Get-ConfluenceAttachment`: neuer `-FileNameFilter`-Parameter, filtert Anhänge über den `filename`-Query-Parameter der API nach exaktem Dateinamen.
 
 ### 1.1.0 (2026-06-30)
