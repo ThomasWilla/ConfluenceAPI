@@ -151,6 +151,7 @@ Alle Funktionen nutzen die Confluence Cloud REST API v2 (`/wiki/api/v2/...`), `A
 
 ### Unreleased
 
+- `Connect-Confluence`: neuer `-AccessToken`-Parameter (ParameterSetName `OAuth2`) als Alternative zu `-Email`/`-ApiToken` — ermöglicht Authentifizierung über einen OAuth2 Bearer Token (z.B. aus dem Atlassian Authorization Code / PKCE-Flow). Das Rückgabeobjekt enthält neu das Feld `AuthMethod`.
 - `Get-ConfluenceAttachment`: neuer `-FileNameFilter`-Parameter, filtert Anhänge über den `filename`-Query-Parameter der API nach exaktem Dateinamen.
 
 ### 1.1.0 (2026-06-30)
