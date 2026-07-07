@@ -54,6 +54,20 @@ Connect-Confluence -BaseUrl "https://deinefirma.atlassian.net" -AccessToken $Bea
 
 Den Token beziehst du über eine Atlassian OAuth 2.0 App ([developer.atlassian.com](https://developer.atlassian.com/console/myapps/)) mit dem Authorization Code / PKCE-Flow. Das Modul akzeptiert den fertigen Token als `[string]` oder `[SecureString]`.
 
+### OAuth2 Service Account (Client Credentials)
+
+Für vollautomatisierte Szenarien ohne Browser-Login kann ein OAuth 2.0 Service-Account-Credential (Client ID/Secret) verwendet werden:
+
+```powershell
+Connect-Confluence -BaseUrl "https://deinefirma.atlassian.net" -ClientId $ClientId -ClientSecret (Read-Host -AsSecureString)
+```
+
+Das Credential erstellst du unter **Atlassian Administration → Directory → Service accounts → Create credentials** (nicht über developer.atlassian.com). Dabei werden die benötigten Confluence-Scopes direkt ausgewählt, u.a. `read:space:confluence` (Pflicht für den Verbindungstest), sowie je nach Bedarf `read:page:confluence`, `write:page:confluence`, `read:attachment:confluence`, `write:attachment:confluence`, `delete:page:confluence`, `delete:attachment:confluence`, `read:label:confluence`, `write:label:confluence`. Der Service Account benötigt zudem Produktzugriff auf Confluence auf der jeweiligen Site.
+
+Das Modul holt sich das Access Token intern per `client_credentials`-Grant (60 Minuten gültig, kein Refresh-Token nötig — bei Bedarf wird bei jedem `Connect-Confluence`-Aufruf ein neues Token angefordert).
+
+> **Hinweis:** OAuth2-Bearer-Tokens (sowohl `-AccessToken` als auch `-ClientId`/`-ClientSecret`) werden nicht direkt gegen die Tenant-Domain validiert. Das Modul ermittelt intern die Cloud-ID über den unauthentifizierten Endpoint `<BaseUrl>/_edge/tenant_info` und leitet alle API-Aufrufe über `https://api.atlassian.com/ex/confluence/{cloudId}/...`. Bei Basic Auth (API-Token) läuft alles weiterhin direkt über die Tenant-Domain.
+
 ### Verbindung über einen Proxy
 
 Falls dein Netzwerk einen ausgehenden Proxy benötigt, kannst du diesen beim Connect konfigurieren. Die Einstellung gilt danach für alle Aufrufe der Session (Seiten, Anhänge). Es gibt zwei Wege: über benannte Profile aus einer Konfigurationsdatei, oder direkt als Parameter.
@@ -151,6 +165,7 @@ Alle Funktionen nutzen die Confluence Cloud REST API v2 (`/wiki/api/v2/...`), `A
 
 ### Unreleased
 
+- `Connect-Confluence`: neuer `-ClientId`/`-ClientSecret`-Parameter (ParameterSetName `ServiceAccount`) für OAuth 2.0 Service Accounts (`client_credentials`-Grant, kein Browser-Login nötig). OAuth2-Bearer-Verbindungen (`-AccessToken` und `-ClientId`/`-ClientSecret`) laufen neu über das `api.atlassian.com/ex/confluence/{cloudId}`-Gateway statt direkt über die Tenant-Domain; die Cloud-ID wird intern über `<BaseUrl>/_edge/tenant_info` ermittelt. Das Rückgabeobjekt enthält neu die Felder `ClientId` und `TokenExpiresAt`.
 - `Connect-Confluence`: neuer `-AccessToken`-Parameter (ParameterSetName `OAuth2`) als Alternative zu `-Email`/`-ApiToken` — ermöglicht Authentifizierung über einen OAuth2 Bearer Token (z.B. aus dem Atlassian Authorization Code / PKCE-Flow). Das Rückgabeobjekt enthält neu das Feld `AuthMethod`.
 - `Get-ConfluenceAttachment`: neuer `-FileNameFilter`-Parameter, filtert Anhänge über den `filename`-Query-Parameter der API nach exaktem Dateinamen.
 
