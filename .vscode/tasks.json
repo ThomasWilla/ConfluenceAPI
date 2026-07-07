@@ -9,8 +9,8 @@
         "-NoProfile",
         "-ExecutionPolicy", "Bypass",
         "-File", "${workspaceFolder}/Update-ModuleManifestFunctions.ps1",
-        "-ModuleRoot", "${workspaceFolder}/1.1.0",
-        "-ManifestPath", "${workspaceFolder}/1.1.0/ConfluenceAPI.psd1",
+        "-ModuleRoot", "${workspaceFolder}/1.2.0",
+        "-ManifestPath", "${workspaceFolder}/1.2.0/ConfluenceAPI.psd1",
         "-Sort"
       ],
       "problemMatcher": []

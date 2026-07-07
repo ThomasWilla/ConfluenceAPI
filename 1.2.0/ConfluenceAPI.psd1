@@ -12,7 +12,7 @@
 RootModule = 'ConfluenceAPI.psm1'
 
 # Version number of this module.
-ModuleVersion = '1.1.0'
+ModuleVersion = '1.2.0'
 
 # Supported PSEditions
 # CompatiblePSEditions = @()
@@ -112,7 +112,7 @@ PrivateData = @{
         # IconUri = ''
 
         # ReleaseNotes of this module
-        ReleaseNotes = '1.1.0: Markdown-Konvertierung (-Markdown Switch), konfigurierbare Proxy-Profile (Set-ConfluenceProxyConfig), BaseUrl-Normalisierung, PS5.1/PS7-kompatible Fehlerbehandlung, diverse Fixes.'
+        ReleaseNotes = '1.2.0: OAuth2 Bearer Token (-AccessToken) und OAuth2 Service Accounts (-ClientId/-ClientSecret, client_credentials) fuer Connect-Confluence, inkl. automatischer Cloud-ID-Aufloesung ueber das api.atlassian.com-Gateway und automatischer Token-Erneuerung. -FileNameFilter fuer Get-ConfluenceAttachment.'
 
         # Prerelease string of this module
         # Prerelease = ''

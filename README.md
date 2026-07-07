@@ -17,14 +17,14 @@ Oder direkt aus dem Repo:
 
 ```powershell
 git clone https://github.com/ThomasWilla/ConfluenceAPI.git
-Import-Module "C:\Pfad\zu\ConfluenceAPI\1.1.0\ConfluenceAPI.psd1"
+Import-Module "C:\Pfad\zu\ConfluenceAPI\1.2.0\ConfluenceAPI.psd1"
 ```
 
 ## Struktur
 
 ```
 ConfluenceAPI/
-└── 1.1.0/
+└── 1.2.0/
     ├── ConfluenceAPI.psd1
     ├── ConfluenceAPI.psm1
     ├── Public/      # Eine Funktion pro Datei, wird exportiert
@@ -165,7 +165,7 @@ Alle Funktionen nutzen die Confluence Cloud REST API v2 (`/wiki/api/v2/...`), `A
 
 ## Changelog
 
-### Unreleased
+### 1.2.0 (2026-07-07)
 
 - `Connect-Confluence`: neuer `-ClientId`/`-ClientSecret`-Parameter (ParameterSetName `ServiceAccount`) für OAuth 2.0 Service Accounts (`client_credentials`-Grant, kein Browser-Login nötig). OAuth2-Bearer-Verbindungen (`-AccessToken` und `-ClientId`/`-ClientSecret`) laufen neu über das `api.atlassian.com/ex/confluence/{cloudId}`-Gateway statt direkt über die Tenant-Domain; die Cloud-ID wird intern über `<BaseUrl>/_edge/tenant_info` ermittelt. Das Rückgabeobjekt enthält neu die Felder `ClientId` und `TokenExpiresAt`.
 - Service-Account-Verbindungen erneuern das Access Token (60 Min. gültig) jetzt automatisch, sobald es abläuft — passiert transparent vor dem nächsten API-Call, kein erneuter `Connect-Confluence`-Aufruf nötig.
