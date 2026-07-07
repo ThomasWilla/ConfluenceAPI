@@ -1,7 +1,7 @@
 function Connect-Confluence {
     <#
     .SYNOPSIS
-        Stellt eine Verbindung zu Confluence Cloud her (API-Token oder OAuth2 Bearer).
+        Stellt eine Verbindung zu Confluence Cloud her (API-Token, OAuth2 Bearer oder OAuth2 Service Account).
     .PARAMETER BaseUrl
         z.B. https://deinedomain.atlassian.net (ein angehängtes "/wiki" wird automatisch entfernt)
     .PARAMETER Email
@@ -10,6 +10,10 @@ function Connect-Confluence {
         API-Token von https://id.atlassian.com/manage-profile/security/api-tokens (nur bei BasicAuth)
     .PARAMETER AccessToken
         OAuth2 Bearer Access Token als String, SecureString oder PSCredential (Token im Password-Feld). Alternativ zu Email/ApiToken.
+    .PARAMETER ClientId
+        Client ID eines OAuth 2.0 Service-Account-Credentials (Atlassian Administration -> Directory -> Service accounts).
+    .PARAMETER ClientSecret
+        Client Secret des Service-Account-Credentials, als String, SecureString oder PSCredential (Secret im Password-Feld).
     .PARAMETER ProxyServer
         Name eines in der Konfigurationsdatei abgelegten Proxy-Profils, z.B. "server-proxy" oder "client-proxy".
         Siehe Set-ConfluenceProxyConfig.
@@ -25,6 +29,8 @@ function Connect-Confluence {
         Connect-Confluence -BaseUrl "https://meinefirma.atlassian.net" -Email "ich@firma.ch" -ApiToken (Read-Host -AsSecureString)
     .EXAMPLE
         Connect-Confluence -BaseUrl "https://meinefirma.atlassian.net" -AccessToken $BearerToken
+    .EXAMPLE
+        Connect-Confluence -BaseUrl "https://meinefirma.atlassian.net" -ClientId $ClientId -ClientSecret $ClientSecret
     .EXAMPLE
         Connect-Confluence -BaseUrl "https://meinefirma.atlassian.net" -Email "ich@firma.ch" -ApiToken $Token -ProxyServer "client-proxy"
     .EXAMPLE
@@ -47,6 +53,14 @@ function Connect-Confluence {
         [Parameter(Mandatory = $true, ParameterSetName = 'OAuth2')]
         [object]
         $AccessToken,
+
+        [Parameter(Mandatory = $true, ParameterSetName = 'ServiceAccount')]
+        [string]
+        $ClientId,
+
+        [Parameter(Mandatory = $true, ParameterSetName = 'ServiceAccount')]
+        [object]
+        $ClientSecret,
 
         [Parameter(Mandatory = $false)]
         [ArgumentCompleter({
@@ -88,40 +102,52 @@ function Connect-Confluence {
     begin {
         $ErrorActionPreference = "Stop"
 
-        if ($PSCmdlet.ParameterSetName -eq 'BasicAuth') {
-            if ($ApiToken -is [System.Security.SecureString]) {
-                $PlainToken = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto(
-                    [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($ApiToken)
-                )
+        switch ($PSCmdlet.ParameterSetName) {
+            'BasicAuth' {
+                if ($ApiToken -is [System.Security.SecureString]) {
+                    $PlainToken = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto(
+                        [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($ApiToken)
+                    )
+                }
+                else {
+                    $PlainToken = [string]$ApiToken
+                }
+                $Pair   = "{0}:{1}" -f $Email, $PlainToken
+                $Base64 = [Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes($Pair))
+                $AuthValue = "Basic $Base64"
             }
-            else {
-                $PlainToken = [string]$ApiToken
+            'OAuth2' {
+                if ($AccessToken -is [System.Management.Automation.PSCredential]) {
+                    $PlainBearer = $AccessToken.GetNetworkCredential().Password
+                }
+                elseif ($AccessToken -is [System.Security.SecureString]) {
+                    $PlainBearer = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto(
+                        [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($AccessToken)
+                    )
+                }
+                else {
+                    $PlainBearer = [string]$AccessToken
+                }
+                $AuthValue = "Bearer $PlainBearer"
             }
-            $Pair   = "{0}:{1}" -f $Email, $PlainToken
-            $Base64 = [Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes($Pair))
-            $AuthValue = "Basic $Base64"
-        }
-        else {
-            if ($AccessToken -is [System.Management.Automation.PSCredential]) {
-                $PlainBearer = $AccessToken.GetNetworkCredential().Password
+            'ServiceAccount' {
+                if ($ClientSecret -is [System.Management.Automation.PSCredential]) {
+                    $PlainClientSecret = $ClientSecret.GetNetworkCredential().Password
+                }
+                elseif ($ClientSecret -is [System.Security.SecureString]) {
+                    $PlainClientSecret = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto(
+                        [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($ClientSecret)
+                    )
+                }
+                else {
+                    $PlainClientSecret = [string]$ClientSecret
+                }
+                # $AuthValue wird weiter unten im process-Block gesetzt, nachdem der Access Token angefordert wurde
             }
-            elseif ($AccessToken -is [System.Security.SecureString]) {
-                $PlainBearer = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto(
-                    [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($AccessToken)
-                )
-            }
-            else {
-                $PlainBearer = [string]$AccessToken
-            }
-            $AuthValue = "Bearer $PlainBearer"
         }
     }
 
     process {
-        $script:CFL_BaseUrl = $BaseUrl.TrimEnd('/') -replace '/wiki$', ''
-        $script:CFL_Email   = if ($PSCmdlet.ParameterSetName -eq 'BasicAuth') { $Email } else { $null }
-        $script:CFL_AuthHeader = @{ Authorization = $AuthValue }
-
         if ($ProxyServer) {
             $ProxyConfigEntry = Get-ConfluenceProxyConfig -Name $ProxyServer -ConfigPath $ProxyConfigPath
             $script:CFL_ProxyUrl = $ProxyConfigEntry.ProxyUrl
@@ -140,17 +166,65 @@ function Connect-Confluence {
         }
 
         $ProxyParams = Get-ConfluenceProxyParams
+        $script:CFL_TokenExpiresAt = $null
+
+        if ($PSCmdlet.ParameterSetName -eq 'ServiceAccount') {
+            # 2-legged OAuth2 (client_credentials), Scopes sind am Service-Account-Credential selbst hinterlegt
+            $TokenBody = @{
+                client_id     = $ClientId
+                client_secret = $PlainClientSecret
+                grant_type    = 'client_credentials'
+            }
+
+            try {
+                $TokenResponse = Invoke-RestMethod -Method Post -Uri 'https://auth.atlassian.com/oauth/token' -Body $TokenBody @ProxyParams
+            }
+            catch {
+                Write-Error $_.Exception.Message
+                Throw "Token-Anfrage bei Atlassian fehlgeschlagen."
+            }
+
+            $AuthValue = "Bearer $($TokenResponse.access_token)"
+            $script:CFL_TokenExpiresAt = (Get-Date).AddSeconds($TokenResponse.expires_in)
+        }
+
+        $SiteUrl = $BaseUrl.TrimEnd('/') -replace '/wiki$', ''
+
+        if ($PSCmdlet.ParameterSetName -in @('OAuth2', 'ServiceAccount')) {
+            # OAuth2 Bearer-Tokens werden nicht gegen die Tenant-Domain validiert, sondern über
+            # das api.atlassian.com-Gateway mit der Cloud-ID der Site (unauthentifiziert ermittelbar).
+            try {
+                $TenantInfo = Invoke-RestMethod -Method Get -Uri "$SiteUrl/_edge/tenant_info" @ProxyParams
+            }
+            catch {
+                Write-Error $_.Exception.Message
+                Throw "Cloud-ID konnte nicht ermittelt werden ($SiteUrl/_edge/tenant_info)."
+            }
+            $ApiBaseUrl = "https://api.atlassian.com/ex/confluence/$($TenantInfo.cloudId)"
+        }
+        else {
+            $ApiBaseUrl = $SiteUrl
+        }
+
+        $script:CFL_SiteUrl  = $SiteUrl
+        $script:CFL_BaseUrl  = $ApiBaseUrl
+        $script:CFL_Email    = if ($PSCmdlet.ParameterSetName -eq 'BasicAuth') { $Email } else { $null }
+        $script:CFL_ClientId = if ($PSCmdlet.ParameterSetName -eq 'ServiceAccount') { $ClientId } else { $null }
+        $script:CFL_AuthHeader = @{ Authorization = $AuthValue }
 
         try {
             $null = Invoke-RestMethod -Method Get -Uri "$($script:CFL_BaseUrl)/wiki/api/v2/spaces?limit=1" -Headers $script:CFL_AuthHeader @ProxyParams
         }
         catch {
             $script:CFL_BaseUrl = $null
+            $script:CFL_SiteUrl = $null
             $script:CFL_Email = $null
+            $script:CFL_ClientId = $null
             $script:CFL_AuthHeader = $null
             $script:CFL_ProxyUrl = $null
             $script:CFL_ProxyUseDefaultCredentials = $null
             $script:CFL_ProxyCredential = $null
+            $script:CFL_TokenExpiresAt = $null
             Write-Error $_.Exception.Message
             Throw "Verbindung zu Confluence fehlgeschlagen."
         }
@@ -158,10 +232,12 @@ function Connect-Confluence {
 
     end {
         [pscustomobject]@{
-            BaseUrl    = $script:CFL_BaseUrl
-            AuthMethod = $PSCmdlet.ParameterSetName
-            Email      = $script:CFL_Email
-            ProxyUrl   = $script:CFL_ProxyUrl
+            BaseUrl        = $script:CFL_SiteUrl
+            AuthMethod     = $PSCmdlet.ParameterSetName
+            Email          = $script:CFL_Email
+            ClientId       = $script:CFL_ClientId
+            TokenExpiresAt = $script:CFL_TokenExpiresAt
+            ProxyUrl       = $script:CFL_ProxyUrl
         }
     }
 }
