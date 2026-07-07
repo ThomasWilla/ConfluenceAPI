@@ -186,6 +186,10 @@ function Connect-Confluence {
 
             $AuthValue = "Bearer $($TokenResponse.access_token)"
             $script:CFL_TokenExpiresAt = (Get-Date).AddSeconds($TokenResponse.expires_in)
+            $script:CFL_ClientSecret = ConvertTo-SecureString -String $PlainClientSecret -AsPlainText -Force
+        }
+        else {
+            $script:CFL_ClientSecret = $null
         }
 
         $SiteUrl = $BaseUrl.TrimEnd('/') -replace '/wiki$', ''
@@ -220,6 +224,7 @@ function Connect-Confluence {
             $script:CFL_SiteUrl = $null
             $script:CFL_Email = $null
             $script:CFL_ClientId = $null
+            $script:CFL_ClientSecret = $null
             $script:CFL_AuthHeader = $null
             $script:CFL_ProxyUrl = $null
             $script:CFL_ProxyUseDefaultCredentials = $null

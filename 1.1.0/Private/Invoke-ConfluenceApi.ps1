@@ -30,6 +30,7 @@ function Invoke-ConfluenceApi {
 
     process {
         $Uri = "$($script:CFL_BaseUrl)$Path"
+        Write-Verbose "$Method $Uri"
         $AllHeaders = $AuthHeader.Clone()
         foreach ($Key in $Headers.Keys) { $AllHeaders[$Key] = $Headers[$Key] }
 

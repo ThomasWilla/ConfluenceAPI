@@ -13,6 +13,7 @@ function Disconnect-Confluence {
         $script:CFL_SiteUrl = $null
         $script:CFL_Email = $null
         $script:CFL_ClientId = $null
+        $script:CFL_ClientSecret = $null
         $script:CFL_AuthHeader = $null
         $script:CFL_ProxyUrl = $null
         $script:CFL_ProxyUseDefaultCredentials = $null
