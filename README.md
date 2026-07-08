@@ -3,6 +3,8 @@
 [![PowerShell Gallery](https://img.shields.io/powershellgallery/v/ConfluenceAPI.svg)](https://www.powershellgallery.com/packages/ConfluenceAPI)
 [![PowerShell Gallery Downloads](https://img.shields.io/powershellgallery/dt/ConfluenceAPI.svg)](https://www.powershellgallery.com/packages/ConfluenceAPI)
 
+> 🇬🇧 [English version](README.en.md)
+
 PowerShell-Modul für die Confluence Cloud REST API (v2). Ermöglicht das Lesen, Erstellen und Bearbeiten von Seiten sowie das Verwalten von Anhängen über API-Token-Authentifizierung, optional über einen konfigurierbaren Proxy.
 
 ## Installation
