@@ -42,8 +42,12 @@ function Invoke-ConfluenceApi {
         $Params += Get-ConfluenceProxyParams
 
         if ($null -ne $Body) {
-            $Params.Body = ($Body | ConvertTo-Json -Depth 20)
-            $Params.ContentType = "application/json"
+            # Als UTF-8-Bytes statt String übergeben: Invoke-RestMethod kodiert einen String-Body
+            # unter Windows PowerShell 5.1 nicht zuverlässig als UTF-8, was bei Sonderzeichen
+            # (Umlaute, Gedankenstriche, Aufzählungszeichen etc.) zu "Invalid UTF-8" Fehlern der API führt.
+            $JsonBody = $Body | ConvertTo-Json -Depth 20
+            $Params.Body = [System.Text.Encoding]::UTF8.GetBytes($JsonBody)
+            $Params.ContentType = "application/json; charset=utf-8"
         }
 
         try {

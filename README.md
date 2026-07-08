@@ -165,6 +165,10 @@ Alle Funktionen nutzen die Confluence Cloud REST API v2 (`/wiki/api/v2/...`), `A
 
 ## Changelog
 
+### Unreleased
+
+- Fix: Schreibende Aufrufe (`New-`/`Update-ConfluencePage` etc.) konnten unter Windows PowerShell 5.1 bei Sonderzeichen (Umlaute, Gedankenstriche, Aufzählungszeichen) mit `400 Bad Request "Invalid UTF-8 middle byte"` fehlschlagen, da `Invoke-RestMethod` einen String-Body nicht zuverlässig als UTF-8 kodiert. Der JSON-Body wird jetzt vor dem Senden explizit in UTF-8-Bytes umgewandelt.
+
 ### 1.2.0 (2026-07-07)
 
 - `Connect-Confluence`: neuer `-ClientId`/`-ClientSecret`-Parameter (ParameterSetName `ServiceAccount`) für OAuth 2.0 Service Accounts (`client_credentials`-Grant, kein Browser-Login nötig). OAuth2-Bearer-Verbindungen (`-AccessToken` und `-ClientId`/`-ClientSecret`) laufen neu über das `api.atlassian.com/ex/confluence/{cloudId}`-Gateway statt direkt über die Tenant-Domain; die Cloud-ID wird intern über `<BaseUrl>/_edge/tenant_info` ermittelt. Das Rückgabeobjekt enthält neu die Felder `ClientId` und `TokenExpiresAt`.
