@@ -51,13 +51,21 @@ function Invoke-ConfluenceApi {
         }
 
         try {
-            $response = Invoke-RestMethod @Params
+            # Invoke-WebRequest + manuelles UTF-8-Decoding statt Invoke-RestMethod: Unter Windows
+            # PowerShell 5.1 wird die Response ohne explizites charset im Content-Type-Header nicht
+            # zuverlässig als UTF-8 dekodiert, was Sonderzeichen (z.B. Umlaute in Titeln) korrumpiert -
+            # und sich bei jedem erneuten Speichern des ungeprüft übernommenen Werts weiter aufschaukelt.
+            $WebResponse = Invoke-WebRequest @Params -UseBasicParsing
         }
         catch {
             $ApiError = Resolve-ConfluenceApiError -ErrorRecord $_
             Write-Error $ApiError.Message
             Throw "Confluence API Fehler ($($ApiError.StatusCode)): $($ApiError.Message)"
         }
+
+        $RawBytes = $WebResponse.RawContentStream.ToArray()
+        $JsonText = [System.Text.Encoding]::UTF8.GetString($RawBytes)
+        $response = if ([string]::IsNullOrWhiteSpace($JsonText)) { $null } else { $JsonText | ConvertFrom-Json }
     }
 
     end {

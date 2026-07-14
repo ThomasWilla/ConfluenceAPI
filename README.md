@@ -170,6 +170,7 @@ Alle Funktionen nutzen die Confluence Cloud REST API v2 (`/wiki/api/v2/...`), `A
 ### Unreleased
 
 - Fix: Schreibende Aufrufe (`New-`/`Update-ConfluencePage` etc.) konnten unter Windows PowerShell 5.1 bei Sonderzeichen (Umlaute, Gedankenstriche, Aufzählungszeichen) mit `400 Bad Request "Invalid UTF-8 middle byte"` fehlschlagen, da `Invoke-RestMethod` einen String-Body nicht zuverlässig als UTF-8 kodiert. Der JSON-Body wird jetzt vor dem Senden explizit in UTF-8-Bytes umgewandelt.
+- Fix: API-Antworten (z.B. bestehende Seitentitel bei `Update-ConfluencePage`) konnten unter Windows PowerShell 5.1 falsch dekodiert werden, wenn die Confluence-Antwort keinen expliziten `charset` im `Content-Type`-Header enthielt — Sonderzeichen wurden dadurch korrumpiert und bei jedem erneuten Speichern des unverändert übernommenen Werts weiter verstümmelt (kumulierendes Mojibake, z.B. Seitentitel mit vielen `Ã Â`-Sequenzen). Antworten werden jetzt explizit als UTF-8-Bytes gelesen statt der automatischen Encoding-Erkennung von `Invoke-RestMethod` zu vertrauen.
 
 ### 1.2.0 (2026-07-07)
 
