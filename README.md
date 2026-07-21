@@ -46,6 +46,8 @@ ConfluenceAPI/
 Connect-Confluence -BaseUrl "https://deinefirma.atlassian.net" -Email "du@firma.ch" -ApiToken (Read-Host -AsSecureString)
 ```
 
+> **Wichtig bei gescopten API-Tokens ("API tokens with scopes") und/oder einer Custom Domain:** Klassische (nicht gescopte) API-Tokens funktionieren mit Basic Auth direkt gegen die Site-Domain (`https://deinefirma.atlassian.net` oder eine gemappte Custom Domain). **Gescopte Tokens funktionieren dort nicht** — die Anfrage wird nicht mit einem Fehler abgelehnt, sondern läuft still als **anonymer Zugriff** (erkennbar z.B. daran, dass öffentliche Inhalte funktionieren, aber private Spaces/Seiten `404` liefern). Gescopte Tokens müssen stattdessen über das Gateway `https://api.atlassian.com/ex/confluence/{cloudId}` angesprochen werden — übergib diese Gateway-URL direkt als `-BaseUrl`. Die Cloud-ID deiner Site bekommst du unauthentifiziert über `https://deinefirma.atlassian.net/_edge/tenant_info`.
+
 ### OAuth2 Bearer Token
 
 Alternativ kann ein OAuth2 Access Token übergeben werden (z.B. aus dem Atlassian OAuth 2.0 (3LO) Flow):
@@ -171,6 +173,7 @@ Alle Funktionen nutzen die Confluence Cloud REST API v2 (`/wiki/api/v2/...`), `A
 
 - Fix: Schreibende Aufrufe (`New-`/`Update-ConfluencePage` etc.) konnten unter Windows PowerShell 5.1 bei Sonderzeichen (Umlaute, Gedankenstriche, Aufzählungszeichen) mit `400 Bad Request "Invalid UTF-8 middle byte"` fehlschlagen, da `Invoke-RestMethod` einen String-Body nicht zuverlässig als UTF-8 kodiert. Der JSON-Body wird jetzt vor dem Senden explizit in UTF-8-Bytes umgewandelt.
 - Fix: API-Antworten (z.B. bestehende Seitentitel bei `Update-ConfluencePage`) konnten unter Windows PowerShell 5.1 falsch dekodiert werden, wenn die Confluence-Antwort keinen expliziten `charset` im `Content-Type`-Header enthielt — Sonderzeichen wurden dadurch korrumpiert und bei jedem erneuten Speichern des unverändert übernommenen Werts weiter verstümmelt (kumulierendes Mojibake, z.B. Seitentitel mit vielen `Ã Â`-Sequenzen). Antworten werden jetzt explizit als UTF-8-Bytes gelesen statt der automatischen Encoding-Erkennung von `Invoke-RestMethod` zu vertrauen.
+- Fix: `Add-ConfluenceAttachment` funktionierte unter Windows PowerShell 5.1 gar nicht (`Es wurde kein Parameter gefunden, der dem Parameternamen "Form" entspricht.`), da der `-Form`-Parameter von `Invoke-RestMethod`/`Invoke-WebRequest` erst ab PowerShell 6+ existiert. Der Multipart-Upload wird jetzt manuell als Byte-Array gebaut, funktioniert damit auf beiden PowerShell-Versionen und behandelt Sonderzeichen in Dateiname/Kommentar korrekt.
 
 ### 1.2.0 (2026-07-07)
 

@@ -38,26 +38,50 @@ function Add-ConfluenceAttachment {
         $Headers = $AuthHeader.Clone()
         $Headers["X-Atlassian-Token"] = "no-check"
 
-        $Form = @{ file = Get-Item -LiteralPath $FilePath }
-        if ($Comment) { $Form.comment = $Comment }
+        # Multipart-Body manuell bauen statt Invoke-RestMethod -Form: -Form gibt es erst ab
+        # PowerShell 6+ (Core), nicht in Windows PowerShell 5.1. Ausserdem so garantiert
+        # korrektes UTF-8 fuer Dateiname/Kommentar mit Sonderzeichen.
+        $FileName = [System.IO.Path]::GetFileName($FilePath)
+        $FileBytes = [System.IO.File]::ReadAllBytes($FilePath)
+        $Boundary = [System.Guid]::NewGuid().ToString()
+        $LF = "`r`n"
+        $Utf8 = New-Object System.Text.UTF8Encoding($false)
+
+        $BodyParts = New-Object System.Collections.Generic.List[byte]
+
+        $FileHeader = "--$Boundary$LF" +
+            "Content-Disposition: form-data; name=`"file`"; filename=`"$FileName`"$LF" +
+            "Content-Type: application/octet-stream$LF$LF"
+        $BodyParts.AddRange([byte[]]$Utf8.GetBytes($FileHeader))
+        $BodyParts.AddRange([byte[]]$FileBytes)
+        $BodyParts.AddRange([byte[]]$Utf8.GetBytes($LF))
+
+        if ($Comment) {
+            $CommentPart = "--$Boundary$LF" +
+                "Content-Disposition: form-data; name=`"comment`"$LF$LF" +
+                "$Comment$LF"
+            $BodyParts.AddRange([byte[]]$Utf8.GetBytes($CommentPart))
+        }
+
+        $BodyParts.AddRange([byte[]]$Utf8.GetBytes("--$Boundary--$LF"))
+        $BodyBytes = $BodyParts.ToArray()
     }
 
     process {
         try {
             $ProxyParams = Get-ConfluenceProxyParams
-            $response = (Invoke-RestMethod -Method Post -Uri $Uri -Headers $Headers -Form $Form @ProxyParams).results
+            $WebResponse = Invoke-WebRequest -Method Post -Uri $Uri -Headers $Headers -Body $BodyBytes `
+                -ContentType "multipart/form-data; boundary=$Boundary" -UseBasicParsing @ProxyParams
         }
         catch {
-            $Resp = $_.Exception.Response
-            if ($Resp) {
-                $Reader = New-Object System.IO.StreamReader($Resp.GetResponseStream())
-                $ErrBody = $Reader.ReadToEnd()
-                Write-Error $ErrBody
-                Throw "Confluence API Fehler ($($Resp.StatusCode)): $ErrBody"
-            }
-            Write-Error $_.Exception.Message
-            Throw $_.ErrorDetails
+            $ApiError = Resolve-ConfluenceApiError -ErrorRecord $_
+            Write-Error $ApiError.Message
+            Throw "Confluence API Fehler ($($ApiError.StatusCode)): $($ApiError.Message)"
         }
+
+        $RawBytes = $WebResponse.RawContentStream.ToArray()
+        $JsonText = [System.Text.Encoding]::UTF8.GetString($RawBytes)
+        $response = if ([string]::IsNullOrWhiteSpace($JsonText)) { $null } else { ($JsonText | ConvertFrom-Json).results }
     }
 
     end {
