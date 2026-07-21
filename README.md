@@ -66,9 +66,32 @@ Für vollautomatisierte Szenarien ohne Browser-Login kann ein OAuth 2.0 Service-
 Connect-Confluence -BaseUrl "https://deinefirma.atlassian.net" -ClientId $ClientId -ClientSecret (Read-Host -AsSecureString)
 ```
 
-Das Credential erstellst du unter **Atlassian Administration → Directory → Service accounts → Create credentials** (nicht über developer.atlassian.com). Dabei werden die benötigten Confluence-Scopes direkt ausgewählt, u.a. `read:space:confluence` (Pflicht für den Verbindungstest), sowie je nach Bedarf `read:page:confluence`, `write:page:confluence`, `read:attachment:confluence`, `write:attachment:confluence`, `delete:page:confluence`, `delete:attachment:confluence`, `read:label:confluence`, `write:label:confluence`. Der Service Account benötigt zudem Produktzugriff auf Confluence auf der jeweiligen Site.
+Das Credential erstellst du unter **Atlassian Administration → Directory → Service accounts → Create credentials** (nicht über developer.atlassian.com). Der Service Account benötigt zudem Produktzugriff auf Confluence auf der jeweiligen Site.
 
 Das Modul holt sich das Access Token intern per `client_credentials`-Grant (60 Minuten gültig) und **erneuert es automatisch**, sobald es abläuft — das passiert transparent vor dem nächsten API-Call, ohne dass `Connect-Confluence` erneut aufgerufen werden muss.
+
+#### Benötigte Scopes pro Funktion
+
+| Funktion | Endpoint | API-Version | Benötigter Scope |
+|---|---|---|---|
+| `Connect-Confluence` (Verbindungstest) | `GET /wiki/api/v2/spaces` | v2 | `read:space:confluence` (granular) |
+| `Get-ConfluencePage` | `GET /wiki/api/v2/pages(/{id})` | v2 | `read:page:confluence` (granular) |
+| `New-ConfluencePage` | `POST /wiki/api/v2/pages` | v2 | `write:page:confluence` (granular) |
+| `Update-ConfluencePage` | `PUT /wiki/api/v2/pages/{id}` | v2 | `write:page:confluence` (granular) |
+| `Remove-ConfluencePage` | `DELETE /wiki/api/v2/pages/{id}` | v2 | `delete:page:confluence` (granular) |
+| `Get-ConfluenceAttachment` | `GET /wiki/api/v2/pages/{id}/attachments` | v2 | `read:attachment:confluence` (granular) |
+| `Add-ConfluenceAttachment` | `POST /wiki/rest/api/content/{id}/child/attachment` | **v1** | `write:confluence-file` (**Classic!**) |
+| `Save-ConfluenceAttachment` | `GET /wiki/api/v2/attachments/{id}` + Download | v2 | `read:attachment:confluence` (granular) |
+| `Remove-ConfluenceAttachment` | `DELETE /wiki/api/v2/attachments/{id}` | v2 | `delete:attachment:confluence` (granular) |
+| `ConvertTo-ConfluenceStorageFormat` | rein lokal, kein API-Call | – | keiner |
+| `Set-ConfluenceProxyConfig` | rein lokal (Config-Datei) | – | keiner |
+
+Für ein Service Account, das alle Funktionen nutzen soll, werden also insgesamt benötigt:
+
+- **Granular:** `read:space:confluence`, `read:page:confluence`, `write:page:confluence`, `delete:page:confluence`, `read:attachment:confluence`, `delete:attachment:confluence`
+- **Classic:** `write:confluence-file`
+
+> **Wichtig:** `Add-ConfluenceAttachment` nutzt den v1-Endpoint (wegen des Multipart-Uploads, den es in v2 gar nicht gibt — v2 unterstützt für Attachments nur `GET`/`DELETE`, kein Hochladen) und braucht deshalb den **Classic Scope** `write:confluence-file`, nicht den granularen `write:attachment:confluence`. Fehlt dieser, schlägt der Upload mit `401 "Unauthorized; scope does not match"` fehl, obwohl alle granularen Scopes korrekt gesetzt sind.
 
 > **Hinweis:** OAuth2-Bearer-Tokens (sowohl `-AccessToken` als auch `-ClientId`/`-ClientSecret`) werden nicht direkt gegen die Tenant-Domain validiert. Das Modul ermittelt intern die Cloud-ID über den unauthentifizierten Endpoint `<BaseUrl>/_edge/tenant_info` und leitet alle API-Aufrufe über `https://api.atlassian.com/ex/confluence/{cloudId}/...`. Bei Basic Auth (API-Token) läuft alles weiterhin direkt über die Tenant-Domain.
 
